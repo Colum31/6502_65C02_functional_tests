@@ -44,7 +44,7 @@ sp4_trap_fail:
 
 
 sp4_trap_success:
-	lda	+(leds_succ_pattern)
+	lda	#(leds_succ_pattern)
 	sta	io_leds_addr
 	
 	jmp	*	
