@@ -26,4 +26,12 @@ a CA65 compatible version in his repository.
 Good luck debugging your emulator, simulator, fpga core, discrete
 logic implementation or whatever you have!
 
+Quick start:
 
+1. Unzip compiler
+unzip as65_142.zip -d as65
+
+2. Compile
+./as65/as65 6502_functional_test.a65 -l -m -w -h0
+
+Compiled binary is named 6502_functional_test.bin, with 6502_functional_test.lst being a disassembly listing.
