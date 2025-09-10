@@ -1,0 +1,50 @@
+;custom functions to test for SP-4
+
+io_base = $6000
+
+io_display_0_addr = (io_base + 0)
+io_display_1_addr = (io_base + 1)
+io_display_2_addr = (io_base + 2)
+
+io_leds_addr = (io_base + 3)
+
+leds_init_pattern = $55
+
+leds_fail_pattern = $ff
+leds_succ_pattern = $0
+
+sp4_res_trap:
+	jsr sp4_init_io
+	jmp start
+
+
+sp4_init_io:
+	lda	#0
+	
+	sta	io_display_0_addr
+	sta	io_display_1_addr
+	sta	io_display_2_addr
+
+	lda	#(leds_init_pattern)	
+	sta	io_leds_addr
+
+	rts
+
+sp4_trap_fail:
+	pla
+	sta	io_display_0_addr
+	
+	pla
+	sta	io_display_1_addr
+
+	lda	#(leds_fail_pattern)
+	sta	io_leds_addr
+
+	jmp 	*
+
+
+sp4_trap_success:
+	lda	+(leds_succ_pattern)
+	sta	io_leds_addr
+	
+	jmp	*	

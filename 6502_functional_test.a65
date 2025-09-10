@@ -100,7 +100,9 @@ I_flag = 3
 ;configure memory - try to stay away from memory used by the system
 ;zero_page memory start address, $52 (82) consecutive Bytes required
 ;                                add 2 if I_flag = 2
-zero_page = $a  
+
+; change to zero page start so generated image is exactly 64kiB big
+zero_page = $0  
 
 ;data_segment memory start address, $7B (123) consecutive Bytes required
 data_segment = $200  
@@ -146,43 +148,8 @@ disable_decimal = 0
 ; my_error_handler should pop the calling address from the stack and report it.
 ; putting larger portions of code (more than 3 bytes) inside the trap macro
 ; may lead to branch range problems for some tests.
-    if report = 0
 trap    macro
-        jmp *           ;failed anyway
-        endm
-trap_eq macro
-        beq *           ;failed equal (zero)
-        endm
-trap_ne macro
-        bne *           ;failed not equal (non zero)
-        endm
-trap_cs macro
-        bcs *           ;failed carry set
-        endm
-trap_cc macro
-        bcc *           ;failed carry clear
-        endm
-trap_mi macro
-        bmi *           ;failed minus (bit 7 set)
-        endm
-trap_pl macro
-        bpl *           ;failed plus (bit 7 clear)
-        endm
-trap_vs macro
-        bvs *           ;failed overflow set
-        endm
-trap_vc macro
-        bvc *           ;failed overflow clear
-        endm
-; please observe that during the test the stack gets invalidated
-; therefore a RTS inside the success macro is not possible
-success macro
-        jmp *           ;test passed, no errors
-        endm
-    endif
-    if report = 1
-trap    macro
-        jsr report_error
+        jsr sp4_trap_fail 
         endm
 trap_eq macro
         bne skip\?
@@ -227,9 +194,8 @@ skip\?
 ; please observe that during the test the stack gets invalidated
 ; therefore a RTS inside the success macro is not possible
 success macro
-        jsr report_success
+        jsr sp4_trap_success 
         endm
-    endif
 
 
 carry   equ %00000001   ;flag bits in status
@@ -5384,7 +5350,7 @@ bin_rti_ret
         success         ;if you get here everything went well
 ; -------------       
 ; S U C C E S S ************************************************
-        jmp start       ;run again      
+        jmp start       ;run again
 
     if disable_decimal < 1
 ; core subroutine of the decimal add/subtract test
@@ -5997,7 +5963,10 @@ break2                  ;BRK pass 2
     if report = 1
         include "report.i65"
     endif
-        
+
+
+    include "sp4.i65"
+
 ;copy of data to initialize BSS segment
     if load_data_direct != 1
 zp_init
@@ -6101,9 +6070,9 @@ vec_bss equ $fffa
     if (load_data_direct = 1) & (ROM_vectors = 1)  
         org $fffa       ;vectors
         dw  nmi_trap
-        dw  res_trap
+        dw  sp4_res_trap	; for SP4, init IO and jump to start upon reset
         dw  irq_trap
     endif
 
         end start
-            
+ 
